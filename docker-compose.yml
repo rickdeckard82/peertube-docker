@@ -1,0 +1,57 @@
+services:
+  peertube:
+    image: chocobozzz/peertube:production-bookworm
+    container_name: peertube
+    env_file:
+      - stack.env
+    logging:
+     options:
+      max-size: 10m
+    ports:
+      - "9000:9000" 
+    volumes:
+      - assets:/app/client/dist
+      - /"CAMINHO ARMAZENAR SEU VIDEOS"/peertube/data:/data
+      - /app/peertube/config:/config
+    depends_on:
+      - postgres
+      - redis
+      - postfix
+    restart: "always"
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: peertube-db
+    env_file:
+      - stack.env
+    logging:
+     options:
+      max-size: 10m
+    volumes:
+      - /app/peertube/db:/var/lib/postgresql/data
+    restart: "always"
+
+  redis:
+    image: redis:6-alpine
+    container_name: peertube-redis
+    volumes:
+      - /app/peertube/redis:/data
+    logging:
+     options:
+      max-size: 10m
+    restart: "always"
+
+  postfix:
+    image: mwader/postfix-relay
+    container_name: peertube-postfix
+    logging:
+     options:
+      max-size: 10m
+    env_file:
+      - stack.env
+    volumes:
+      - /app/peertube/opendkim/keys:/etc/opendkim/keys
+    restart: "always"
+
+volumes:
+  assets:
